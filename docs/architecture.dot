@@ -1,0 +1,18 @@
+digraph CILifeboat {
+  graph [rankdir=TB, bgcolor="transparent", pad="0.18", nodesep="0.20", ranksep="0.30", fontname="DejaVu Sans", dpi=140, splines=polyline]
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=16, margin="0.24,0.13", penwidth=1.4, color="#c7d2fe", fillcolor="#eef2ff", fontcolor="#18213a"]
+  edge [color="#64748b", penwidth=1.7, arrowsize=0.8, fontname="DejaVu Sans", fontsize=11, fontcolor="#334155"]
+
+  hosted [label="GitHub Actions\nHosted CI (default)"]
+  refusal [label="GitHub records explicit\nbilling / quota refusal"]
+  controller [label="CI Lifeboat controller\nYour machine · polls GitHub API", fillcolor="#fff7ed", color="#fdba74"]
+  dispatch [label="GitHub Actions\nDedicated fallback workflow"]
+  runner [label="Official self-hosted runner\nYour machine · accepts assigned job", fillcolor="#ecfdf5", color="#86efac"]
+  result [label="GitHub Actions\nQA checks and logs"]
+
+  hosted -> refusal [label="hosted job cannot start"]
+  refusal -> controller [label="API evidence · outbound HTTPS"]
+  controller -> dispatch [label="workflow dispatch · outbound HTTPS"]
+  dispatch -> runner [label="runner-initiated outbound connection"]
+  runner -> result [label="trusted QA · upload results"]
+}
