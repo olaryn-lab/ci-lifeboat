@@ -1,4 +1,4 @@
-"""Offline documentation regression tests (especially GitHub mobile README)."""
+"""Offline documentation regression tests for native Mermaid diagrams."""
 from pathlib import Path
 import re
 import unittest
@@ -8,13 +8,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DocumentationTests(unittest.TestCase):
-    def test_readme_renders_image_not_raw_mermaid(self):
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("![CI Lifeboat architecture", readme)
-        self.assertIn("](docs/architecture.png)", readme)
-        self.assertNotIn(chr(96) * 3 + "mermaid", readme)
-        png = (ROOT / "docs/architecture.png").read_bytes()
-        self.assertTrue(png.startswith(bytes.fromhex("89504e470d0a1a0a")))
+    def test_readme_and_architecture_use_native_mermaid(self):
+        source = (ROOT / "docs/architecture.mmd").read_text(encoding="utf-8").strip()
+        self.assertTrue(source.startswith("flowchart TD"))
+        self.assertEqual(source.count('["'), 7)
+        for doc in ("README.md", "docs/ARCHITECTURE.md"):
+            with self.subTest(doc=doc):
+                content = (ROOT / doc).read_text(encoding="utf-8")
+                self.assertIn(f"```mermaid\n{source}\n```", content)
+                self.assertNotIn("architecture.png", content)
+                self.assertNotIn("architecture.svg", content)
+                self.assertNotIn("architecture.dot", content)
 
     def test_source_and_agent_documentation_exist(self):
         for name in (
@@ -22,13 +26,12 @@ class DocumentationTests(unittest.TestCase):
             "docs/INSTALL.md",
             "docs/ARCHITECTURE.md",
             "docs/architecture.mmd",
-            "docs/architecture.dot",
-            "docs/architecture.svg",
             "RELEASE.md",
             "SECURITY.md",
         ):
             with self.subTest(name=name):
                 self.assertTrue((ROOT / name).is_file())
+
 
     def test_readme_local_links_resolve(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

@@ -17,11 +17,20 @@ CI Lifeboat is a small, self-hosted **GitHub Actions fallback controller**. It c
 
 ## How it works
 
-![CI Lifeboat architecture — GitHub-hosted CI, quota verification, dispatch and self-hosted runner](docs/architecture.png)
+```mermaid
+flowchart TD
+    A["GitHub-hosted CI"] --> B{"Hosted quota or billing refusal?"}
+    B -->|No| C["Hosted CI stays the default"]
+    B -->|Yes| D["CI Lifeboat verifies the current commit"]
+    D --> E["Dispatch restricted fallback workflow"]
+    E --> F["Official self-hosted runner"]
+    F --> G["Recheck evidence, run trusted QA"]
+    G --> H["Results in GitHub Actions"]
+```
 
 **Two outbound connections, no inbound connection to your desktop:** CI Lifeboat polls and dispatches using the GitHub API; the **official GitHub runner** independently connects to GitHub to accept jobs and send results. CI Lifeboat never contacts the runner directly.
 
-For security boundaries, offline behavior, exact triggering rules and a maintained diagram source, see [Architecture](docs/ARCHITECTURE.md).
+For security boundaries, offline behavior, and the exact triggering rules, see [Architecture](docs/ARCHITECTURE.md).
 
 ## Install with a coding agent
 

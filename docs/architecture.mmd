@@ -1,20 +1,8 @@
 flowchart TD
-    Hosted["GitHub Actions: Hosted CI (default)"]
-    Refusal["GitHub records explicit billing or quota refusal"]
-    Controller["CI Lifeboat controller on your machine"]
-    Dispatch["GitHub Actions: Dedicated fallback workflow"]
-    Runner["Official self-hosted runner on your machine"]
-    Result["GitHub Actions: QA checks and logs"]
-
-    Hosted -->|"Hosted job cannot start"| Refusal
-    Refusal -->|"Poll GitHub API using outbound HTTPS"| Controller
-    Controller -->|"Dispatch using outbound HTTPS"| Dispatch
-    Dispatch -->|"Runner-initiated outbound connection"| Runner
-    Runner -->|"Trusted QA and upload results"| Result
-
-    classDef github fill:#eef2ff,stroke:#c7d2fe,color:#18213a
-    classDef controller fill:#fff7ed,stroke:#fdba74,color:#18213a
-    classDef runner fill:#ecfdf5,stroke:#86efac,color:#18213a
-    class Hosted,Refusal,Dispatch,Result github
-    class Controller controller
-    class Runner runner
+    A["GitHub-hosted CI"] --> B{"Hosted quota or billing refusal?"}
+    B -->|No| C["Hosted CI stays the default"]
+    B -->|Yes| D["CI Lifeboat verifies the current commit"]
+    D --> E["Dispatch restricted fallback workflow"]
+    E --> F["Official self-hosted runner"]
+    F --> G["Recheck evidence, run trusted QA"]
+    G --> H["Results in GitHub Actions"]

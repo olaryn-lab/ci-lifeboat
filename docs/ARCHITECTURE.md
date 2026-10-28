@@ -4,9 +4,18 @@
 
 CI Lifeboat is a **quota-aware dispatch controller**, not a GitHub Actions runner implementation. GitHub's official self-hosted runner performs registration, job execution and result upload.
 
-![CI Lifeboat architecture](architecture.png)
+```mermaid
+flowchart TD
+    A["GitHub-hosted CI"] --> B{"Hosted quota or billing refusal?"}
+    B -->|No| C["Hosted CI stays the default"]
+    B -->|Yes| D["CI Lifeboat verifies the current commit"]
+    D --> E["Dispatch restricted fallback workflow"]
+    E --> F["Official self-hosted runner"]
+    F --> G["Recheck evidence, run trusted QA"]
+    G --> H["Results in GitHub Actions"]
+```
 
-[Editable Mermaid source](architecture.mmd) · [Graphviz source used to render the PNG](architecture.dot) · [Scalable SVG](architecture.svg)
+[Mermaid diagram source](architecture.mmd)
 
 ## Who connects to whom?
 
