@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.env
+.env.*
+!.env.example
+.venv/
+config.toml
+!examples/config.toml

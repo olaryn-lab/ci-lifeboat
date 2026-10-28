@@ -1,0 +1,14 @@
+[Unit]
+Description=CI Lifeboat verified GitHub Actions quota fallback
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/ci-lifeboat --config %h/.config/ci-lifeboat/config.toml --dispatch
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+RuntimeMaxSec=270

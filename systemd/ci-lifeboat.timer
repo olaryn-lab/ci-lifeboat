@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll GitHub-hosted CI quota for CI Lifeboat
+
+[Timer]
+OnCalendar=*:0/5
+AccuracySec=45s
+Persistent=false
+Unit=ci-lifeboat.service
+
+[Install]
+WantedBy=timers.target

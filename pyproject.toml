@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ci-lifeboat"
+version = "0.1.0"
+description = "Evidence-verified fallback from GitHub-hosted CI to trusted self-hosted runners"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Olaryn contributors" }]
+keywords = ["github-actions", "self-hosted-runner", "ci", "failover"]
+classifiers = ["Programming Language :: Python :: 3", "Operating System :: POSIX :: Linux"]
+
+[project.scripts]
+ci-lifeboat = "ci_lifeboat.dispatcher:main"
+
+[tool.setuptools.packages.find]
+include = ["ci_lifeboat*"]

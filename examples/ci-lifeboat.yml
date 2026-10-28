@@ -1,0 +1,65 @@
+# Install as .github/workflows/ci-lifeboat.yml in an APPROVED repository.
+# Bind a trusted, isolated self-hosted runner label and restrict its runner group
+# to this EXACT workflow on a protected main branch.
+name: CI Lifeboat QA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+
+jobs:
+  fallback-quality:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, ci-lifeboat]
+    timeout-minutes: 80
+    steps:
+      - name: Confirm verified hosted quota failure on this SHA before checkout
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          api="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
+          auth=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
+          branch_sha=$(curl -fsS "${auth[@]}" "$api/branches/main" | jq -r '.commit.sha')
+          if [[ "$branch_sha" != "$GITHUB_SHA" ]]; then
+            echo "::error::Only the current protected main SHA may use this runner."
+            exit 1
+          fi
+          runs=$(curl -fsS "${auth[@]}" "$api/actions/runs?head_sha=$GITHUB_SHA&per_page=100")
+          found=0
+          while IFS= read -r run; do
+            [[ -n "$run" ]] || continue
+            jobs=$(curl -fsS "${auth[@]}" "$api/actions/runs/$run/jobs?per_page=100")
+            while IFS= read -r id; do
+              [[ -n "$id" ]] || continue
+              annotations=$(curl -fsS "${auth[@]}" "$api/check-runs/$id/annotations?per_page=100")
+              if jq -e '[.[] | (.message // "") | ascii_downcase | select(test("recent account payments have failed|spending limit needs to be increased|actions minutes (quota|limit|exhausted)|hosted runner (quota|minutes) exhausted"))] | length > 0' <<<"$annotations" >/dev/null; then
+                found=1
+                break
+              fi
+            done < <(jq -r '.jobs[] | select(.conclusion=="failure") | .id' <<<"$jobs")
+            [[ "$found" == 0 ]] || break
+          done < <(jq -r --arg sha "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha==$sha and .head_branch=="main") | select(.event=="push" or .event=="workflow_dispatch") | select(.conclusion=="failure") | select(.name!="CI Lifeboat QA") | .id] | .[]' <<<"$runs")
+          if [[ "$found" != 1 ]]; then
+            echo "::error::No verified hosted quota refusal for $GITHUB_SHA; fallback forbidden."
+            exit 1
+          fi
+          echo "Verified hosted quota refusal. Continuing with trusted source-level checks."
+      - name: Checkout trusted main revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Run explicitly approved fallback QA recipe
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Define ci-fallback as a deliberately source-level, secret-free QA target.
+          # Never silently succeed when the target is missing.
+          make ci-fallback
+      - name: Explain scope
+        run: echo "Fallback QA does not substitute for integration, supply-chain or release gates."

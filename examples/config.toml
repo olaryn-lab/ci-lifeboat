@@ -1,0 +1,8 @@
+# Explicit allowlist. Replace with repositories you control.
+# All repositories are PRIVATE ONLY by default.
+[[repositories]]
+name = "your-org/your-private-repo"
+branch = "main"
+workflow = "ci-lifeboat.yml"
+workflow_name = "CI Lifeboat QA"
+allow_public = false
