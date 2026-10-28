@@ -25,9 +25,27 @@ For security boundaries, offline behavior, exact triggering rules and a maintain
 
 ## Install with a coding agent
 
-Give this to **Claude Code, Codex, or another coding agent with terminal/GitHub access**:
+Give this prompt to **Claude Code, Codex, or another coding agent with terminal/GitHub access**. Use the copy button on the code block:
 
-> Install [CI Lifeboat](https://github.com/olaryn-lab/ci-lifeboat) for my GitHub Actions repositories. **First read [AGENTS.md](AGENTS.md) and [docs/INSTALL.md](docs/INSTALL.md).** Inspect the existing CI, propose an explicit trusted-repository allowlist and a limited QA target, and explain runner isolation. **Do not register a runner, change runner groups, add workflows to repositories, enable a timer, dispatch jobs, or change GitHub settings until I approve the plan.** Never print or commit credentials. Once approved, implement the restricted setup, run offline tests and dry-run verification, check failure behavior, then report what was installed and what still needs a real quota refusal to validate. Keep existing hosted CI and release gates unchanged.
+```text
+Install CI Lifeboat for my GitHub Actions repositories:
+https://github.com/olaryn-lab/ci-lifeboat
+
+First read AGENTS.md and docs/INSTALL.md in that repository.
+Inspect my existing CI and propose an explicit trusted-repository
+allowlist, limited QA target, and runner isolation plan.
+
+Before making changes, get my approval. Do not register runners,
+change runner groups, add workflows, enable timers, dispatch jobs,
+or change GitHub settings without approval.
+
+Never print or commit credentials. Once approved, implement the
+restricted setup, run offline tests and dry-run verification, check
+failure behavior, and report what was installed and what still needs
+a real quota refusal to validate.
+
+Keep existing hosted CI and protected release gates unchanged.
+```
 
 The repo includes [agent-specific installation rules](AGENTS.md) so agents can execute the approved installation safely instead of guessing.
 
