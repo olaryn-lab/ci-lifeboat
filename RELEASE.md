@@ -13,8 +13,9 @@ must explicitly approve release after security review.
       (e.g. gitleaks or equivalent) where available.
 - [ ] Confirm Apache-2.0 rights for every included source/dependency and
       include third-party notices when needed.
-- [ ] Confirm full GitHub-hosted test CI on the public repo's PRs; never a
-      self-hosted runner label on public source PR workflows.
+- [ ] Confirm the public repository uses GitHub-hosted CI for contributor PRs;
+      any self-hosted access is separately scoped to an approved protected-branch
+      fallback workflow.
 - [ ] Review the fallback example for protected branch, exact commit, evidence
       validation before checkout, pinned Actions, restricted permissions,
       no implicit deploy and no secret access.

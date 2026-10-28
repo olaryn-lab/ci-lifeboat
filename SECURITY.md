@@ -1,15 +1,14 @@
 # Security policy
 
-CI Lifeboat dispatches jobs that execute repository code on self-hosted hosts.
-**Do not run untrusted PRs, fork submissions or public contributions on a
-persistent machine**, even if the runner is in a container. A runner host
-must not contain personal or production credentials, access to the Docker
-socket, or broadly privileged cloud credentials. Use disposable isolated
-runners and defense in depth.
+## Supported execution scope
 
-GitHub runner groups must restrict repository, workflow and trusted branch
-separately; the dispatcher itself does not create or verify those policies.
-Disabling a timer does not stop already-queued GitHub Actions runs.
+CI Lifeboat is designed for trusted QA on an **explicit repository allowlist**, its **protected branch** (the sample uses `main`), and one **dedicated fallback workflow**. The controller verifies GitHub's billing/quota refusal for that branch's current commit, while **GitHub runner groups** independently restrict which repository and workflow can receive self-hosted capacity.
+
+**Allowlisting a repository does not automatically restrict every workflow or ref in that repository.** Both the runner-group policy and the workflow's protected-branch guard are necessary parts of the supported setup. PR heads, fork branches and arbitrary contributor workflows are **outside the fallback scope**; ordinary contributor CI remains GitHub-hosted. For publicly available repositories, the same narrow protected-branch workflow boundary needs explicit review before enabling self-hosted access.
+
+The approved fallback job runs repository code on the operator's machine. Use an isolated runner environment with minimal credentials/permissions, no host Docker socket and no production secrets. A container reduces exposure but is not a complete boundary; ephemeral runner hosts provide additional isolation.
+
+The dispatcher does not create or verify GitHub runner-group policies. Disabling its timer does not cancel already queued GitHub jobs.
 
 Do not report vulnerabilities in public issues with exploit details, host
 secrets or access tokens. Before a public GitHub repository exists, report

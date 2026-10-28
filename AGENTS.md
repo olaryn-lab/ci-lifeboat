@@ -12,8 +12,8 @@ Install a **small evidence-verified dispatcher** while leaving GitHub-hosted CI 
 2. **Obtain the user's approval before any side effect:** registering/reconfiguring a runner, changing runner groups/settings, creating/changing GitHub workflows, creating or enabling systemd services, dispatching jobs, introducing credentials, or altering branch protection. If an approval is already explicit, stay within its exact scope.
 3. **Fail closed.** Do not weaken or bypass checks, suppress failures, fabricate quota evidence or widen runner access to make a test pass.
 4. **Keep secrets out of source and logs.** Never print, copy into chat, or commit registration tokens, PATs, SSH keys or personal configs. Use the GitHub CLI/official auth mechanism and minimal scopes.
-5. **Public-source PR CI must stay GitHub-hosted.** Do not run untrusted PRs, forks, or arbitrary community branches on persistent or personal self-hosted machines. Do not grant public repos access to the private runner pool.
-6. **Prefer an isolated ephemeral runner.** No host Docker socket, personal home mounts, production credentials or privileged deployment commands.
+5. **Enforce the approved execution scope.** Scope the runner group to the exact approved repositories and fallback workflow on the protected branch. Contributor PRs, fork heads, and other workflows stay on GitHub-hosted CI and are outside this fallback path. Repository allowlisting by itself is not sufficient.
+6. **Use an isolated runner.** Dedicated containers are suitable for trusted protected-branch QA when appropriately restricted; ephemeral runners/VMs add isolation. No host Docker socket, personal home mounts, production credentials or privileged deployment commands.
 7. **Do not change protected release gates.** The fallback recipe is additional source-level QA, not a substitute for build provenance, integrations, security scans or production qualification.
 8. **Keep existing CI operational.** When migrating, avoid disrupting currently registered runners or systemd timers until the user approves the cutover and rollback.
 9. **Validate after every change.** Run offline tests, a dry-run evaluation, config/permission checks, and report exactly what is verified versus still unverified. Avoid live dispatch merely to “see if it works.”
@@ -36,7 +36,7 @@ Install a **small evidence-verified dispatcher** while leaving GitHub-hosted CI 
 - [ ] Scoped permissions and no secret-bearing environment
 - [ ] Local runner isolation and outbound network verified
 - [ ] Same-SHA quota evidence validated twice (controller and workflow)
-- [ ] Ordinary failures and public fork PRs cannot dispatch fallback
+- [ ] Runner-group and workflow/branch guards keep fallback on approved protected-branch QA; PR workflows remain on hosted CI
 - [ ] Existing CI/release checks are unchanged
 - [ ] No secrets/private infrastructure leaked in commits
 - [ ] Timer/runner registration changes approved and reversible

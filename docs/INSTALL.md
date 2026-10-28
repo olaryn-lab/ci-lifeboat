@@ -39,11 +39,11 @@ Edit the config with only your approved repository names. The example is intenti
 
 Follow GitHub's current [self-hosted runner instructions](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners).
 
-- Register the runner for the appropriate repository/organization. Keep registration tokens out of shells logs and source control.
-- Use a dedicated runner group or repo-scoped runner. Limit it to the exact repository and fallback workflow. Allow only trusted protected branch execution.
-- Provide an isolated runtime; **no host Docker socket, personal files, production tokens, or broadly privileged cloud credentials**.
+- Register the runner for the appropriate repository/organization. Keep registration tokens out of shell logs and source control.
+- Use a dedicated runner group or repo-scoped runner. **Allowlist the exact repository, dedicated fallback workflow, and protected branch.** Selecting a repository alone does not restrict other workflows.
+- Provide an isolated runtime with **no host Docker socket, personal files, production tokens or broadly privileged cloud credentials**; dedicated containers are suitable for trusted QA, while ephemeral runners/VMs provide extra isolation.
 - Use a unique runner label, and set the matching `runs-on` in the workflow template.
-- Do **not** grant public fork PR workflows access. The public CI Lifeboat repository itself should continue to use GitHub-hosted runners.
+- Keep contributor PR workflows on GitHub-hosted CI; the self-hosted fallback is for the approved protected-branch workflow.
 
 The controller does **not** configure or audit these GitHub settings.
 
@@ -90,7 +90,7 @@ Set `~/.config/ci-lifeboat/config.toml` based on [examples/config.toml](../examp
 | `branch` | `main` | Trusted protected branch |
 | `workflow` | `ci-lifeboat.yml` | Allowed dispatch workflow filename |
 | `workflow_name` | `CI Lifeboat QA` | Used for deduplication |
-| `allow_public` | `false` | High-risk public opt-in; **not recommended** for personal machines |
+| `allow_public` | `false` | Explicit public-repository opt-in; requires review of the protected-branch workflow and runner-group scope |
 
 Configuration is intentionally stored outside the source repository. Do not commit private repository names, tokens or host-specific config to the public repo.
 

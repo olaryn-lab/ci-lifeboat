@@ -65,9 +65,11 @@ ci-lifeboat                          # Dry run; no dispatch
 
 Before enabling jobs, follow the [step-by-step installation guide](docs/INSTALL.md) to install the restricted workflow, configure runner-group access, verify the `ci-fallback` QA target, and optionally enable scheduling. **Do not run `--dispatch` until those checks pass.**
 
-## Security and scope
+## Security and supported scope
 
-Self-hosted workflows execute repository code on **your machine**. Keep runners isolated, without host Docker sockets or production credentials, and restricted to trusted branches and workflows. **Do not run fork pull requests on a personal desktop.** Containers alone are not a complete sandbox.
+CI Lifeboat is designed for **explicitly approved repositories, one dedicated fallback workflow, and a protected branch (typically `main`)**. The controller verifies a quota refusal for the current commit; GitHub runner-group restrictions determine which workflow can use your desktop runner. **Repository selection alone is not the execution boundary:** the workflow and branch restrictions matter too.
+
+In this setup, contributor PRs use ordinary GitHub-hosted CI; the desktop fallback handles **approved protected-branch QA only**. Keep the runner isolated, without a host Docker socket or production credentials. Containers reduce risk but are not a complete sandbox.
 
 [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Release checklist](RELEASE.md) · [Configuration](docs/INSTALL.md#configuration)
 

@@ -34,8 +34,10 @@ No inbound firewall port, public desktop IP, reverse proxy, Cloudflare Tunnel, o
 
 **If the desktop is off:** the controller cannot dispatch new work. Already-dispatched fallback jobs may queue until a runner comes online, or time out. **If the GitHub API is unavailable or evidence is ambiguous:** the controller fails closed.
 
-## Trust boundaries
+## Supported execution scope and trust boundaries
 
-The controller's configured repository list is only **one layer**. Operators must separately configure GitHub runner groups to allow precisely the intended repository, workflow and trusted branch. Use dedicated ephemeral runners/VMs where possible; non-root containers, no host Docker socket, minimal permissions, no production secrets, and restricted networking reduce the blast radius but do not eliminate it.
+The controller's configured repository list is **one layer**, not a complete permission boundary. GitHub runner groups must also allow only the approved repository and dedicated fallback workflow; the workflow itself requires protected `main` and rechecks evidence for the exact SHA before checkout. This is the **trusted protected-branch QA path**, separate from contributor PR checks.
 
-A public copy of the **CI Lifeboat source repository** must use **GitHub-hosted CI only** for contributions. Never expose a personal desktop runner to untrusted fork pull requests. See [SECURITY.md](../SECURITY.md) and the [installation guide](INSTALL.md).
+For public open-source source repositories such as CI Lifeboat, PR workflows use GitHub-hosted CI; self-hosted capacity, where enabled, is restricted to reviewed protected-branch workflows. Container isolation, non-root execution, minimal credentials, no host Docker socket, and restricted networking reduce the blast radius. Dedicated ephemeral runners/VMs can provide additional isolation when the trust model requires it.
+
+See [SECURITY.md](../SECURITY.md) and the [installation guide](INSTALL.md).
