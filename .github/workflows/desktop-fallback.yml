@@ -1,0 +1,67 @@
+# CI Lifeboat's own QA fallback on the Olaryn org's isolated public runner pool.
+# The group allowlists only this workflow on refs/heads/main; PRs use hosted CI.
+name: Desktop fallback QA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+
+jobs:
+  fallback-quality:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, desktop-fallback-trevra]
+    timeout-minutes: 20
+    steps:
+      - name: Verify quota refusal for the current main SHA before checkout
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          api="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
+          auth=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
+          current_sha=$(curl -fsS "${auth[@]}" "$api/branches/main" | jq -r '.commit.sha')
+          if [[ "$current_sha" != "$GITHUB_SHA" ]]; then
+            echo "::error::Only the current main SHA is eligible for fallback."
+            exit 1
+          fi
+          runs=$(curl -fsS "${auth[@]}" "$api/actions/runs?head_sha=$GITHUB_SHA&per_page=100")
+          found=0
+          while IFS= read -r run; do
+            [[ -n "$run" ]] || continue
+            jobs=$(curl -fsS "${auth[@]}" "$api/actions/runs/$run/jobs?per_page=100")
+            while IFS= read -r job_id; do
+              [[ -n "$job_id" ]] || continue
+              annotations=$(curl -fsS "${auth[@]}" "$api/check-runs/$job_id/annotations?per_page=100")
+              if jq -e '[.[] | (.message // "") | ascii_downcase | select(test("recent account payments have failed|spending limit needs to be increased|actions minutes (quota|limit|exhausted)|hosted runner (quota|minutes) exhausted"))] | length > 0' <<<"$annotations" >/dev/null; then
+                found=1
+                break
+              fi
+            done < <(jq -r '.jobs[] | select(.conclusion=="failure") | .id' <<<"$jobs")
+            [[ "$found" == 0 ]] || break
+          done < <(jq -r --arg sha "$GITHUB_SHA" '[.workflow_runs[] | select(.head_sha==$sha and .head_branch=="main") | select(.event=="push" or .event=="workflow_dispatch") | select(.conclusion=="failure") | select(.name!="Desktop fallback QA") | .id] | .[]' <<<"$runs")
+          if [[ "$found" != 1 ]]; then
+            echo "::error::No verified hosted quota refusal on the exact current main SHA."
+            exit 1
+          fi
+          echo "Verified hosted quota/billing refusal; running restricted source-level QA."
+
+      - name: Checkout trusted main revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run CI Lifeboat offline tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 --version
+          python3 -m unittest discover -s tests -v
+          python3 -m compileall -q ci_lifeboat
+
+      - name: Report limited QA scope
+        run: echo "Fallback unit and source checks are not a replacement for protected release gates."
